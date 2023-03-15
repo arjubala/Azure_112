@@ -9,7 +9,7 @@ trigger:
 
 resources:
   pipelines:
-  - pipeline: myappbuild  # Name of the pipeline resource
+  - pipeline: drop  # Name of the pipeline resource
     source: myapp-build-pipeline # Name of the triggering pipeline
     trigger: 
       branches:
