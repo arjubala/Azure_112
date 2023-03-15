@@ -1,9 +1,9 @@
 trigger:
 - master
 jobs:
- - job: Linux
+ - job: Build
    pool:
-    vmImage: 'Ubuntu 16.04'
+    vmImage: 'latest-ubuntu'
    steps:
    - task: DotNetCoreInstaller@0
      inputs:
