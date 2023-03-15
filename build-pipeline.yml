@@ -1,28 +1,30 @@
 trigger:
-- master # to trigger automatically when we done some changes in the GIT repo (Ci-cd) process
-jobs:
- - job: Build   #(Azure Devops task for build)
-   pool:
-     name: 'Azure Pipelines'  # pointing to  Agent pools
-   steps:
-   - task: DotNetCoreInstaller@0      #insatlling dotnet
-     inputs:
-       packageType: 'sdk'                   
-       version: '2.2.401'
-   - script: echo dotnet build with test files ./ ***.sln we can do download and extract
-     displayName: 'dotnet build'
-   - script: echo this can run tests with file
-     displayName: 'run tests'
-  
-   - task: PublishBuildArtifacts@1
-     inputs:
-       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-       ArtifactName: 'Project'
-       publishLocation: 'Container'
+- master
+variables:
+  vmImageName: 'ubuntu-latest'
 
-   - task: PublishTestResults@2
-     displayName: 'Publish Test Results **/*.trx'
-     condition: succeededOrFailed()
-     inputs:
-       testResultsFormat: VSTest
-       testResultsFiles: '"**/*.trx'
+jobs:  
+- job: Build
+  pool:
+    vmImage: $(vmImageName)
+  steps:
+  - script: | 
+      echo 'do some unit test'
+    displayName: 'unit test'
+  - script: | 
+      echo 'compile application'
+    displayName: 'compile'
+  - task: DotNetCoreInstaller@0
+    inputs:
+      packageType: 'sdk'                   
+      version: '2.2.401'
+  - task: ArchiveFiles@2
+    displayName: 'Archive files'
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      replaceExistingArchive: true
+  - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+    artifact: drop
