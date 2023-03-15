@@ -9,10 +9,17 @@ jobs:
      inputs:
        packageType: 'sdk'                   
        version: '2.2.401'
-   - script: echo dotnet build with test files ./ ***.sln
+   - script: echo dotnet build with test files ./ ***.sln we can do download and extract
      displayName: 'dotnet build'
    - script: echo this can run tests with file
      displayName: 'run tests'
+  
+   - task: PublishBuildArtifacts@1
+     inputs:
+       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+       ArtifactName: 'Project'
+       publishLocation: 'Container'
+
    - task: PublishTestResults@2
      displayName: 'Publish Test Results **/*.trx'
      condition: succeededOrFailed()
