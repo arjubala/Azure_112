@@ -13,7 +13,7 @@ stages:
   - job: Deploy
     pool:
       name: Azure Pipelines
-      VmImaga: 'latest ubuntu'
+      # VmImaga: 'latest ubuntu'
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
