@@ -1,27 +1,28 @@
 trigger:
-- master
+- master                    #we can noe also, but i mentioned for CI-CD AS master trigger
 variables:
-  vmImageName: 'ubuntu-latest'
+  vmImageName: 'ubuntu-latest'                 #chossed latest ubuntu machine from my agent pools
 
 jobs:  
 - job: Build
   pool:
-    vmImage: $(vmImageName)
+    vmImage: $(vmImageName)                     # from varibale 
   steps:
+  - task: DotNetCoreInstaller@0                # for example puprpose i haev taken dot net installing
+    displayName: 'Build'
+    inputs:
+      packageType: 'sdk'                   
+      version: '2.2.401'
   - script: | 
-      echo 'do some unit test'
+      echo 'do some unit test'                  # after installing packges we can test as unit ot any integratioj or dot net tests
     displayName: 'unit test'
   - script: | 
       echo 'compile application'
     displayName: 'compile'
-  - task: DotNetCoreInstaller@0
-    inputs:
-      packageType: 'sdk'                   
-      version: '2.2.401'
-  - task: ArchiveFiles@2
+  - task: ArchiveFiles@2                        # after testing test results can be upload to s3 or local machine we can zip it and extract it
     displayName: 'Archive files'
     inputs:
-      rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)'       # all ziped file sinto local machine default working directory
       includeRootFolder: false
       archiveType: zip
       archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
