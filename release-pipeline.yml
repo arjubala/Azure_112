@@ -1,55 +1,49 @@
-trigger:
-  branches:
-    include:
-    - b11
-
-pr: none
-
-variables:
-  vmImageName: 'ubuntu-latest'
-
+parameters:
+    # AdminPassword:defaul******
+    # AdminTestPassword: default
+    # HostingPlan:default
+    # ServerName:default
+    # WebsiteName:default
+    # azureResourceManagerConnection: '<SERVICE-CONNECTION>' # need service connection
+    # subscriptionId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' # need Subscription ID
+     
 stages:
-- stage: Build
+- stage: Deploy
   jobs:
-  - job: Build 
-  pool:
-    vmImage: $(vmImageName)
-
-    variables:
-      solution: '**/*.sln'
-      buildPlatform: 'Any CPU'
-      buildConfiguration: 'Release'
-
+  - job: Deploy
+    pool:
+      name: Azure Pipelines
+      VmImaga: 'latest ubuntu'
     steps:
-    - task: NuGetToolInstaller@1
-
-    - task: NuGetCommand@2
+    - task: DownloadPipelineArtifact@2
       inputs:
-        restoreSolution: '$(solution)'
+        buildType: 'current'
+        artifactName: 'project'
+        targetPath: '$(System.ArtifactsDirectory)'
 
-    - task: VSBuild@1
+    - task: AzureResourceManagerTemplateDeployment@3
       inputs:
-        solution: '$(solution)'
-        msbuildArgs: >-
-          /p:DeployOnBuild=true /p:WebPublishMethod=Package 
-          /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true 
-          /p:PackageLocation="$(build.artifactStagingDirectory)"
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
-
-    - task: VSTest@2
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: '<SERVICE-CONNECTION>' # need service connection
+        subscriptionId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' # need Subscription ID
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: 'demo-rg'
+        location: 'East US'
+        templateLocation: 'Linked artifact'
+        csmFile: '$(System.ArtifactsDirectory)/**/FullEnvironmentSetupMerged.json'
+        csmParametersFile: '$(System.ArtifactsDirectory)/**/FullEnvironmentSetupMerged.param.json'
+        overrideParameters: >- 
+          -WebsiteName $(WebsiteName) 
+          -PUL_ServerName $(ServerName) 
+          -PUL_DBPassword $(AdminPassword) 
+          -PUL_DBPasswordForTest $(AdminTestPassword) 
+          -PUL_HostingPlanName $(HostingPlan)
+        deploymentMode: 'Incremental'
+    
+    - task: AzureRmWebAppDeployment@4
       inputs:
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
-
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '$(build.sourcesdirectory)/PartsUnlimited-aspnet45/env/'
-        Contents: '**/*.json'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)'
-
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-        artifact: 'drop'
-        publishLocation: 'pipeline'
+        ConnectionType: 'AzureRM'
+        azureSubscription: '<SERVICE-CONNECTION>' # service connection
+        appType: 'webApp'
+        WebAppName: $(WebsiteName)
+        packageForLinux: '$(Build.ArtifactStagingDirectory)/**/*.zip'
