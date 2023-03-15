@@ -5,7 +5,7 @@ jobs:
    pool:
     vmImage: 'Ubuntu 16.04'
    steps:
-   - task: DotNetCoreInstaller@eo
+   - task: DotNetCoreInstaller@0
      inputs:
        packageType: 'sdk'
        version: '2.2.401'
