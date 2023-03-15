@@ -15,35 +15,38 @@ stages:
       name: Azure Pipelines
       # VmImaga: 'latest ubuntu'
     steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        buildType: 'current'
-        artifactName: 'project'
-        targetPath: '$(System.ArtifactStagingsDirectory)'/https://artprodsin1.artifacts.visualstudio.com/Ad22b6b50-f775-4e08-8800-1804e3622987/b2f4d791-68aa-45cc-902e-0193e93bbf8f/_apis/artifact/cGlwZWxpbmVhcnRpZmFjdDovLzIyNDI1OTkvcHJvamVjdElkL2IyZjRkNzkxLTY4YWEtNDVjYy05MDJlLTAxOTNlOTNiYmY4Zi9idWlsZElkLzIwL2FydGlmYWN0TmFtZS9kcm9w0/content?format=file&subPath=%2F20.zip
+      - task: Bash@3
+        inputs:
+          filePath: 'echo build started'
+    # - task: DownloadPipelineArtifact@2
+    #   inputs:
+    #     buildType: 'current'
+    #     artifactName: 'project'
+    #     targetPath: '$(System.ArtifactStagingsDirectory)'/https://artprodsin1.artifacts.visualstudio.com/Ad22b6b50-f775-4e08-8800-1804e3622987/b2f4d791-68aa-45cc-902e-0193e93bbf8f/_apis/artifact/cGlwZWxpbmVhcnRpZmFjdDovLzIyNDI1OTkvcHJvamVjdElkL2IyZjRkNzkxLTY4YWEtNDVjYy05MDJlLTAxOTNlOTNiYmY4Zi9idWlsZElkLzIwL2FydGlmYWN0TmFtZS9kcm9w0/content?format=file&subPath=%2F20.zip
 
-    - task: AzureResourceManagerTemplateDeployment@3
-      inputs:
-        deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: '<SERVICE-CONNECTION>' # need service connection
-        subscriptionId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' # need Subscription ID
-        action: 'Create Or Update Resource Group'
-        resourceGroupName: 'demo-rg'
-        location: 'East US'
-        templateLocation: 'Linked artifact'
-        csmFile: '$(System.ArtifactsDirectory)/**/FullEnvironmentSetupMerged.json'
-        csmParametersFile: '$(System.ArtifactsDirectory)/**/FullEnvironmentSetupMerged.param.json'
-        overrideParameters: >- 
-          -WebsiteName $(WebsiteName) 
-          -PUL_ServerName $(ServerName) 
-          -PUL_DBPassword $(AdminPassword) 
-          -PUL_DBPasswordForTest $(AdminTestPassword) 
-          -PUL_HostingPlanName $(HostingPlan)
-        deploymentMode: 'Incremental'
+    # - task: AzureResourceManagerTemplateDeployment@3
+    #   inputs:
+    #     deploymentScope: 'Resource Group'
+    #     azureResourceManagerConnection: '<SERVICE-CONNECTION>' # need service connection
+    #     subscriptionId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX' # need Subscription ID
+    #     action: 'Create Or Update Resource Group'
+    #     resourceGroupName: 'demo-rg'
+    #     location: 'East US'
+    #     templateLocation: 'Linked artifact'
+    #     csmFile: '$(System.ArtifactsDirectory)/**/FullEnvironmentSetupMerged.json'
+    #     csmParametersFile: '$(System.ArtifactsDirectory)/**/FullEnvironmentSetupMerged.param.json'
+    #     overrideParameters: >- 
+    #       -WebsiteName $(WebsiteName) 
+    #       -PUL_ServerName $(ServerName) 
+    #       -PUL_DBPassword $(AdminPassword) 
+    #       -PUL_DBPasswordForTest $(AdminTestPassword) 
+    #       -PUL_HostingPlanName $(HostingPlan)
+    #     deploymentMode: 'Incremental'
     
-    - task: AzureRmWebAppDeployment@4
-      inputs:
-        ConnectionType: 'AzureRM'
-        azureSubscription: '<SERVICE-CONNECTION>' # service connection
-        appType: 'webApp'
-        WebAppName: $(WebsiteName)
-        packageForLinux: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+    # - task: AzureRmWebAppDeployment@4
+    #   inputs:
+    #     ConnectionType: 'AzureRM'
+    #     azureSubscription: '<SERVICE-CONNECTION>' # service connection
+    #     appType: 'webApp'
+    #     WebAppName: $(WebsiteName)
+    #     packageForLinux: '$(Build.ArtifactStagingDirectory)/**/*.zip'
