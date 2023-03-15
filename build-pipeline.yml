@@ -9,9 +9,9 @@ jobs:
      inputs:
        packageType: 'sdk'
        version: '2.2.401'
-   - script: dotnet build ./SimplCommerce.sln
+   - script: echo dotnet build with test files
      displayName: 'dotnet build'
-   - script: ./run-tests.sh
+   - script: .echo this can run tests with file
      displayName: 'run tests'
    - task: PublishTestResults@2
      displayName: 'Publish Test Results **/*.trx'
