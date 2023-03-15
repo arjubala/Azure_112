@@ -4,7 +4,6 @@ jobs:
  - job: Build
    pool:
      name: 'Azure Pipelines'
-     demands: AGENT_KIND -equals Hosted Agent
    steps:
    - task: DotNetCoreInstaller@0
      inputs:
