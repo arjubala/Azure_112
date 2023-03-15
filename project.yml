@@ -1,0 +1,38 @@
+trigger:
+  branches:
+    include:
+    - Azure_112
+
+pr: none
+
+stages:
+
+  - stage: Build
+    displayName: 'Build'
+    dependsOn: []
+    jobs:
+      - job: Build
+        pool:
+          name: '$(Build_Agent_pool)'
+        timeoutInMinutes: 75  
+        strategy:
+          parallel: 1
+        workspace:  
+          clean: all # Delete the entire Pipeline.Workspace directory before running a new job.   
+        steps:
+        - template: Templates/start-build-notification.yml
+          parameters:
+            Branch: $(Full_Branch_Name)
+            Enable_slack_notifications: ${{variables.Enable_slack_notifications}}
+            StageHasTests: "false"
+            notification_channel: ${{variables.Ci_common_notification_channel}}
+            
+        - pwsh: | 
+            Get-ChildItem Env:
+          displayName: '| Setting version from file or previous runName | job: $(Agent.JobName) | stage: $(System.StageName) |'
+
+        - template: Templates/BuildPS.yml
+          parameters:
+            S3_Source_Folder: $(s3_bucket_folder_prefix)
+            Enable_slack_notifications: ${{variables.Enable_slack_notifications}}
+            notification_channel: ${{variables.Ci_common_notification_channel}}
