@@ -1,39 +1,55 @@
 trigger:
   branches:
     include:
-    - master
-  paths:
-    include:
-    - build-pipeline.yml
-    - release-pipeline.yml
+    - b11
 
-resources:
-  pipelines:
-  - pipeline: drop  # Name of the pipeline resource
-    source: myapp-build-pipeline # Name of the triggering pipeline
-    trigger: 
-      branches:
-      - master
+pr: none
 
 variables:
   vmImageName: 'ubuntu-latest'
 
-jobs:
-- deployment: Deploy
-  displayName: Deploy
-  environment: dev
-  pool: 
+stages:
+- stage: Build
+  jobs:
+  - job: Build 
+  pool:
     vmImage: $(vmImageName)
-  strategy:
-    runOnce:
-      deploy:
-        steps:          
-        - download: myappbuild
-          artifact: drop  
-        - task: ExtractFiles@1
-          inputs:
-            archiveFilePatterns: '$(PIPELINE.WORKSPACE)/myappbuild/drop/$(resources.pipeline.myappbuild.runID).zip'
-            destinationFolder: '$(agent.builddirectory)'
-            cleanDestinationFolder: false
-        - script: |  
-            cat $(agent.builddirectory)/greatcode.txt
+
+    variables:
+      solution: '**/*.sln'
+      buildPlatform: 'Any CPU'
+      buildConfiguration: 'Release'
+
+    steps:
+    - task: NuGetToolInstaller@1
+
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
+
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: >-
+          /p:DeployOnBuild=true /p:WebPublishMethod=Package 
+          /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true 
+          /p:PackageLocation="$(build.artifactStagingDirectory)"
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(build.sourcesdirectory)/PartsUnlimited-aspnet45/env/'
+        Contents: '**/*.json'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifact: 'drop'
+        publishLocation: 'pipeline'
