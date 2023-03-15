@@ -1,17 +1,17 @@
 trigger:
-- master
+- master # to trigger automatically when we done some changes in the GIT repo (Ci-cd) process
 jobs:
- - job: Build
+ - job: Build   #(Azure Devops task for build)
    pool:
-     name: 'Azure Pipelines'
+     name: 'Azure Pipelines'  # pointing to  Agent pools
    steps:
-   - task: DotNetCoreInstaller@0
+   - task: DotNetCoreInstaller@0      #insatlling dotnet
      inputs:
-       packageType: 'sdk'
+       packageType: 'sdk'                   
        version: '2.2.401'
-   - script: echo dotnet build with test files
+   - script: echo dotnet build with test files ./ ***.sln
      displayName: 'dotnet build'
-   - script: .echo this can run tests with file
+   - script: echo this can run tests with file
      displayName: 'run tests'
    - task: PublishTestResults@2
      displayName: 'Publish Test Results **/*.trx'
