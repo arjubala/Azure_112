@@ -1,33 +1,55 @@
 trigger:
   branches:
     include:
-    - master
-  paths:
-    include:
-    - build-pipeline.yml
-    - release-pipeline.yml
+    - main
+
+pr: none
 
 variables:
   vmImageName: 'ubuntu-latest'
 
-jobs:  
-- job: Build
+stages:
+- stage: Build
+  jobs:
+  - job: Build 
   pool:
     vmImage: $(vmImageName)
-  steps:
-  - script: | 
-      echo 'do some unit test'
-    displayName: 'unit test'
-  - script: | 
-      echo 'compile application'
-    displayName: 'compile'
-  - task: ArchiveFiles@2
-    displayName: 'Archive files'
-    inputs:
-      rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-      includeRootFolder: false
-      archiveType: zip
-      archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-      replaceExistingArchive: true
-  - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-    artifact: drop
+
+    variables:
+      solution: '**/*.sln'
+      buildPlatform: 'Any CPU'
+      buildConfiguration: 'Release'
+
+    steps:
+    - task: NuGetToolInstaller@1
+
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
+
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: >-
+          /p:DeployOnBuild=true /p:WebPublishMethod=Package 
+          /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true 
+          /p:PackageLocation="$(build.artifactStagingDirectory)"
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(build.sourcesdirectory)/PartsUnlimited-aspnet45/env/'
+        Contents: '**/*.json'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifact: 'drop'
+        publishLocation: 'pipeline'
