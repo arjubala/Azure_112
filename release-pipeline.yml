@@ -1,5 +1,11 @@
 trigger:
-- none
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - build-pipeline.yml
+    - release-pipeline.yml
 
 resources:
   pipelines:
